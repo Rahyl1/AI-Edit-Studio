@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Edit Studio</title>
+
+<meta name="description"
+content="AI Edit Studio automatically transforms your videos into polished short videos.">
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#050b16;
+  color:#ffffff;
+}
+
+.container{
+  width:min(100% - 30px,900px);
+  margin:auto;
+}
+
+
+/* HEADER */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  background:rgba(5,11,22,.94);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.header-inner{
+  height:70px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.brand{
+  font-size:21px;
+  font-weight:900;
+}
+
+.brand span{
+  color:#19e6ff;
+}
+
+.header-badge{
+  font-size:12px;
+  padding:7px 11px;
+  border-radius:30px;
+  background:rgba(25,230,255,.1);
+  border:1px solid rgba(25,230,255,.25);
+  color:#19e6ff;
+}
+
+
+/* HERO */
+
+.hero{
+  text-align:center;
+  padding:55px 0 30px;
+}
+
+.hero-badge{
+  display:inline-block;
+  padding:8px 14px;
+  border-radius:30px;
+  background:rgba(25,230,255,.09);
+  border:1px solid rgba(25,230,255,.25);
+  color:#19e6ff;
+  font-size:12px;
+  font-weight:800;
+  margin-bottom:18px;
+}
+
+.hero h1{
+  margin:0;
+  font-size:clamp(38px,9vw,70px);
+  line-height:1.03;
+  font-weight:900;
+}
+
+.hero h1 span{
+  color:#19e6ff;
+}
+
+.hero p{
+  max-width:650px;
+  margin:20px auto 0;
+  color:#9aa9bb;
+  line-height:1.7;
+  font-size:16px;
+}
+
+
+/* EDITOR CARD */
+
+.editor-card{
+  background:#0b1728;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px;
+  padding:20px;
+  box-shadow:0 20px 70px rgba(0,0,0,.35);
+}
+
+
+/* UPLOAD */
+
+.upload-area{
+  border:2px dashed rgba(25,230,255,.35);
+  border-radius:19px;
+  padding:40px 20px;
+  text-align:center;
+  background:rgba(25,230,255,.025);
+}
+
+.upload-icon{
+  font-size:48px;
+  margin-bottom:12px;
+}
+
+.upload-title{
+  font-size:20px;
+  font-weight:800;
+}
+
+.upload-description{
+  color:#8494a8;
+  font-size:13px;
+  line-height:1.6;
+  margin:9px auto 20px;
+  max-width:420px;
+}
+
+#videoInput{
+  display:none;
+}
+
+.choose-btn{
+  display:inline-block;
+  padding:14px 24px;
+  border-radius:13px;
+  background:#19e6ff;
+  color:#00151c;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.file-name{
+  margin-top:15px;
+  color:#19e6ff;
+  font-size:13px;
+  word-break:break-word;
+}
+
+
+/* SETTINGS */
+
+.settings{
+  margin-top:18px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.setting{
+  padding:13px;
+  border-radius:13px;
+  background:#101f34;
+  border:1px solid rgba(255,255,255,.06);
+  text-align:center;
+}
+
+.setting-icon{
+  font-size:20px;
+}
+
+.setting-title{
+  margin-top:5px;
+  font-size:12px;
+  color:#b9c5d3;
+}
+
+
+/* CREATE */
+
+.create-btn{
+  width:100%;
+  margin-top:18px;
+  padding:17px;
+  border:0;
+  border-radius:14px;
+  background:linear-gradient(135deg,#19e6ff,#00a9ff);
+  color:#00151c;
+  font-size:17px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.create-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+
+/* STATUS */
+
+.status{
+  display:none;
+  margin-top:16px;
+  padding:15px;
+  border-radius:13px;
+  background:#101f34;
+  color:#c8d3df;
+  font-size:13px;
+  line-height:1.6;
+}
+
+
+/* PROGRESS */
+
+.progress-wrap{
+  display:none;
+  margin-top:15px;
+}
+
+.progress-track{
+  height:8px;
+  background:#18283e;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-bar{
+  width:0%;
+  height:100%;
+  background:#19e6ff;
+  transition:width .35s;
+}
+
+
+/* RESULT */
+
+.result{
+  display:none;
+  margin-top:20px;
+  padding:18px;
+  border-radius:18px;
+  background:#0a1424;
+  border:1px solid rgba(25,230,255,.2);
+}
+
+.result-title{
+  color:#19e6ff;
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:15px;
+}
+
+.result video{
+  width:100%;
+  max-height:600px;
+  display:block;
+  border-radius:14px;
+  background:#000;
+}
+
+.download-btn{
+  display:block;
+  margin-top:15px;
+  padding:15px;
+  border-radius:13px;
+  text-align:center;
+  background:#19e6ff;
+  color:#00151c;
+  font-weight:900;
+}
+
+
+/* FEATURES */
+
+.features{
+  margin:25px 0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:13px;
+}
+
+.feature{
+  background:#0b1728;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:17px;
+  padding:20px 15px;
+}
+
+.feature-icon{
+  font-size:27px;
+}
+
+.feature h3{
+  margin:10px 0 7px;
+  font-size:15px;
+}
+
+.feature p{
+  margin:0;
+  color:#8494a8;
+  font-size:12px;
+  line-height:1.6;
+}
+
+
+/* NOTICE */
+
+.notice{
+  margin:25px 0;
+  padding:16px;
+  border-radius:15px;
+  background:rgba(255,193,7,.07);
+  border:1px solid rgba(255,193,7,.15);
+  color:#cbd4df;
+  font-size:12px;
+  line-height:1.7;
+}
+
+
+/* FOOTER */
+
+footer{
+  margin-top:45px;
+  padding:30px 15px;
+  text-align:center;
+  color:#607086;
+  font-size:12px;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+
+
+/* MOBILE */
+
+@media(max-width:650px){
+
+  .container{
+    width:min(100% - 22px,900px);
+  }
+
+  .hero{
+    padding-top:40px;
+  }
+
+  .hero p{
+    font-size:14px;
+  }
+
+  .editor-card{
+    padding:14px;
+    border-radius:20px;
+  }
+
+  .upload-area{
+    padding:32px 15px;
+  }
+
+  .settings{
+    grid-template-columns:1fr 1fr 1fr;
+  }
+
+  .features{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<header>
+
+<div class="container header-inner">
+
+<div class="brand">
+AI <span>Edit</span> Studio
+</div>
+
+<div class="header-badge">
+AI VIDEO EDITOR
+</div>
+
+</div>
+
+</header>
+
+
+<main class="container">
+
+
+<section class="hero">
+
+<div class="hero-badge">
+⚡ AI POWERED VIDEO EDITOR
+</div>
+
+<h1>
+Edit Videos<br>
+<span>Automatically</span>
+</h1>
+
+<p>
+Upload your video and let AI Edit Studio
+automatically enhance, optimize and prepare
+it for Shorts, Reels and TikTok.
+</p>
+
+</section>
+
+
+<section class="editor-card">
+
+
+<div class="upload-area">
+
+<div class="upload-icon">
+🎬
+</div>
+
+<div class="upload-title">
+Upload Your Video
+</div>
+
+<div class="upload-description">
+Choose a video from your device.
+AI Edit Studio will automatically prepare
+your video for short-form platforms.
+</div>
+
+
+<label
+class="choose-btn"
+for="videoInput">
+
+📁 Choose Video
+
+</label>
+
+
+<input
+id="videoInput"
+type="file"
+accept="video/*"
+/>
+
+
+<div
+id="fileName"
+class="file-name">
+</div>
+
+</div>
+
+
+<div class="settings">
+
+<div class="setting">
+
+<div class="setting-icon">
+📱
+</div>
+
+<div class="setting-title">
+9:16 Short
+</div>
+
+</div>
+
+
+<div class="setting">
+
+<div class="setting-icon">
+✨
+</div>
+
+<div class="setting-title">
+Auto Enhance
+</div>
+
+</div>
+
+
+<div class="setting">
+
+<div class="setting-icon">
+🔊
+</div>
+
+<div class="setting-title">
+Audio Optimize
+</div>
+
+</div>
+
+</div>
+
+
+<button
+id="createBtn"
+class="create-btn"
+disabled>
+
+⚡ Create AI Short
+
+</button>
+
+
+<div
+id="progressWrap"
+class="progress-wrap">
+
+<div class="progress-track">
+
+<div
+id="progressBar"
+class="progress-bar">
+</div>
+
+</div>
+
+</div>
+
+
+<div
+id="status"
+class="status">
+</div>
+
+
+<div
+id="result"
+class="result">
+
+<div class="result-title">
+✅ Your AI Short is Ready
+</div>
+
+<div id="videoContainer"></div>
+
+</div>
+
+
+</section>
+
+
+<section class="notice">
+
+<strong>⚠️ Important:</strong><br>
+
+Please upload only videos that you created
+yourself or have permission/license to use.
+
+AI Edit Studio does not remove copyright
+ownership or grant permission to use
+someone else's content.
+
+</section>
+
+
+<section class="features">
+
+
+<div class="feature">
+
+<div class="feature-icon">
+🤖
+</div>
+
+<h3>
+Automatic Editing
+</h3>
+
+<p>
+Upload your video and let the system
+automatically prepare it for short-form
+content.
+</p>
+
+</div>
+
+
+<div class="feature">
+
+<div class="feature-icon">
+✨
+</div>
+
+<h3>
+Auto Enhancement
+</h3>
+
+<p>
+Improve the overall look and audio of
+your video automatically.
+</p>
+
+</div>
+
+
+<div class="feature">
+
+<div class="feature-icon">
+📲
+</div>
+
+<h3>
+Shorts Ready
+</h3>
+
+<p>
+Create a mobile-friendly 9:16 video
+for Shorts, Reels and TikTok.
+</p>
+
+</div>
+
+</section>
+
+
+</main>
+
+
+<footer>
+
+© 2026 AI Edit Studio
+
+</footer>
+
+
+<script>
+
+const BACKEND_URL =
+"https://ai-edit-studio.onrender.com";
+
+
+const videoInput =
+document.getElementById(
+"videoInput"
+);
+
+const fileName =
+document.getElementById(
+"fileName"
+);
+
+const createBtn =
+document.getElementById(
+"createBtn"
+);
+
+const statusBox =
+document.getElementById(
+"status"
+);
+
+const progressWrap =
+document.getElementById(
+"progressWrap"
+);
+
+const progressBar =
+document.getElementById(
+"progressBar"
+);
+
+const result =
+document.getElementById(
+"result"
+);
+
+const videoContainer =
+document.getElementById(
+"videoContainer"
+);
+
+
+let resultURL = null;
+
+
+// =====================================
+// FILE SELECT
+// =====================================
+
+videoInput.addEventListener(
+"change",
+function(){
+
+if(
+!videoInput.files ||
+videoInput.files.length === 0
+){
+
+createBtn.disabled = true;
+
+fileName.textContent = "";
+
+return;
+
+}
+
+
+const file =
+videoInput.files[0];
+
+
+if(
+!file.type.startsWith("video/")
+){
+
+showStatus(
+"❌ Please select a valid video.",
+true
+);
+
+videoInput.value = "";
+
+createBtn.disabled = true;
+
+return;
+
+}
+
+
+fileName.textContent =
+"Selected: " + file.name;
+
+createBtn.disabled = false;
+
+result.style.display = "none";
+
+statusBox.style.display = "none";
+
+});
+
+
+// =====================================
+// CREATE SHORT
+// =====================================
+
+createBtn.addEventListener(
+"click",
+async function(){
+
+if(
+!videoInput.files ||
+videoInput.files.length === 0
+){
+
+showStatus(
+"Please choose a video first.",
+true
+);
+
+return;
+
+}
+
+
+const file =
+videoInput.files[0];
+
+
+const formData =
+new FormData();
+
+formData.append(
+"video",
+file
+);
+
+
+createBtn.disabled = true;
+
+createBtn.textContent =
+"⏳ Processing...";
+
+
+progressWrap.style.display =
+"block";
+
+progressBar.style.width =
+"10%";
+
+
+showStatus(
+"📤 Uploading your video..."
+);
+
+
+try{
+
+
+const response =
+await fetch(
+BACKEND_URL +
+"/api/create-short",
+{
+method:"POST",
+body:formData
+}
+);
+
+
+progressBar.style.width =
+"60%";
+
+
+if(!response.ok){
+
+let message =
+"Video processing failed.";
+
+try{
+
+const data =
+await response.json();
+
+if(data.message){
+
+message =
+data.message;
+
+}
+
+}catch(e){}
+
+
+throw new Error(message);
+
+}
+
+
+showStatus(
+"⚙️ AI is processing your video..."
+);
+
+
+const blob =
+await response.blob();
+
+
+progressBar.style.width =
+"100%";
+
+
+if(resultURL){
+
+URL.revokeObjectURL(
+resultURL
+);
+
+}
+
+
+resultURL =
+URL.createObjectURL(
+blob
+);
+
+
+// VIDEO PREVIEW
+
+const video =
+document.createElement(
+"video"
+);
+
+video.src =
+resultURL;
+
+video.controls = true;
+
+video.playsInline = true;
+
+video.preload = "metadata";
+
+
+// DOWNLOAD
+
+const download =
+document.createElement(
+"a"
+);
+
+download.href =
+resultURL;
+
+download.download =
+"AI-Edit-Studio-Short.mp4";
+
+download.className =
+"download-btn";
+
+download.textContent =
+"⬇️ Download Short";
+
+
+videoContainer.innerHTML = "";
+
+videoContainer.appendChild(
+video
+);
+
+videoContainer.appendChild(
+download
+);
+
+
+result.style.display =
+"block";
+
+
+showStatus(
+"✅ Short Ready! Preview your video below or download it."
+);
+
+
+createBtn.textContent =
+"✅ Short Ready";
+
+
+}catch(error){
+
+console.error(error);
+
+
+showStatus(
+"❌ " + error.message,
+true
+);
+
+
+createBtn.textContent =
+"⚡ Create AI Short";
+
+
+}finally{
+
+createBtn.disabled =
+false;
+
+}
+
+});
+
+
+// =====================================
+// STATUS
+// =====================================
+
+function showStatus(
+message,
+isError
+){
+
+statusBox.style.display =
+"block";
+
+statusBox.textContent =
+message;
+
+
+statusBox.style.color =
+isError
+? "#ff8a8a"
+: "#cbd4df";
+
+}
+
+</script>
+
+</body>
+</html>
