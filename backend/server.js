@@ -150,20 +150,28 @@ app.post(
     // ====================================
 
     const style =
-      req.body.style || "cinematic";
+  req.body.style || "cinematic";
 
-    const effect =
-      req.body.effect || "medium";
+const music =
+  req.body.music || "auto";
 
-    const aspect =
-      req.body.aspect || "9:16";
+const subtitle =
+  req.body.subtitle || "yes";
 
+const effect =
+  req.body.effect || "medium";
+
+const ratio =
+  req.body.ratio || "9:16";
+
+const prompt =
+  req.body.prompt || "";
 
     console.log("================================");
     console.log("AI EDIT REQUEST");
     console.log("Style:", style);
     console.log("Effect:", effect);
-    console.log("Aspect:", aspect);
+    console.log("Ratio:", ratio);
     console.log("Input:", inputFile);
     console.log("================================");
 
@@ -174,7 +182,7 @@ app.post(
 
     let scaleFilter;
 
-    if (aspect === "16:9") {
+    if (ratio === "16:9") {
 
       scaleFilter =
         "scale=1280:720:force_original_aspect_ratio=increase," +
