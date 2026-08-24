@@ -7,7 +7,7 @@
 <title>AI Edit Studio</title>
 
 <meta name="description"
-content="AI Edit Studio automatically transforms your videos into polished short videos.">
+content="AI Edit Studio - Automatic AI video editor for Shorts, Reels and TikTok.">
 
 <style>
 
@@ -23,14 +23,13 @@ body{
   margin:0;
   font-family:Arial,Helvetica,sans-serif;
   background:#050b16;
-  color:#ffffff;
+  color:#fff;
 }
 
 .container{
-  width:min(100% - 30px,900px);
+  width:min(100% - 24px,900px);
   margin:auto;
 }
-
 
 /* HEADER */
 
@@ -38,7 +37,7 @@ header{
   position:sticky;
   top:0;
   z-index:100;
-  background:rgba(5,11,22,.94);
+  background:rgba(5,11,22,.95);
   backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(255,255,255,.08);
 }
@@ -60,20 +59,19 @@ header{
 }
 
 .header-badge{
-  font-size:12px;
-  padding:7px 11px;
+  font-size:11px;
+  padding:7px 10px;
   border-radius:30px;
   background:rgba(25,230,255,.1);
   border:1px solid rgba(25,230,255,.25);
   color:#19e6ff;
 }
 
-
 /* HERO */
 
 .hero{
   text-align:center;
-  padding:55px 0 30px;
+  padding:45px 0 25px;
 }
 
 .hero-badge{
@@ -90,7 +88,7 @@ header{
 
 .hero h1{
   margin:0;
-  font-size:clamp(38px,9vw,70px);
+  font-size:clamp(38px,9vw,68px);
   line-height:1.03;
   font-weight:900;
 }
@@ -100,15 +98,14 @@ header{
 }
 
 .hero p{
-  max-width:650px;
-  margin:20px auto 0;
+  max-width:680px;
+  margin:18px auto 0;
   color:#9aa9bb;
   line-height:1.7;
-  font-size:16px;
+  font-size:15px;
 }
 
-
-/* EDITOR CARD */
+/* EDITOR */
 
 .editor-card{
   background:#0b1728;
@@ -118,20 +115,19 @@ header{
   box-shadow:0 20px 70px rgba(0,0,0,.35);
 }
 
-
 /* UPLOAD */
 
 .upload-area{
   border:2px dashed rgba(25,230,255,.35);
   border-radius:19px;
-  padding:40px 20px;
+  padding:35px 18px;
   text-align:center;
   background:rgba(25,230,255,.025);
 }
 
 .upload-icon{
-  font-size:48px;
-  margin-bottom:12px;
+  font-size:45px;
+  margin-bottom:10px;
 }
 
 .upload-title{
@@ -144,7 +140,7 @@ header{
   font-size:13px;
   line-height:1.6;
   margin:9px auto 20px;
-  max-width:420px;
+  max-width:500px;
 }
 
 #videoInput{
@@ -168,40 +164,102 @@ header{
   word-break:break-word;
 }
 
-
 /* SETTINGS */
 
-.settings{
-  margin-top:18px;
+.settings-title-main{
+  margin:25px 0 12px;
+  font-size:18px;
+  font-weight:900;
+}
+
+.settings-subtitle{
+  color:#8494a8;
+  font-size:12px;
+  margin-bottom:15px;
+}
+
+/* OPTION GROUP */
+
+.option-group{
+  margin-top:16px;
+}
+
+.option-label{
+  display:block;
+  margin-bottom:9px;
+  font-size:13px;
+  font-weight:800;
+  color:#dce5ef;
+}
+
+.option-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
+  gap:9px;
 }
 
-.setting{
-  padding:13px;
-  border-radius:13px;
-  background:#101f34;
-  border:1px solid rgba(255,255,255,.06);
+.option-grid.four{
+  grid-template-columns:repeat(4,1fr);
+}
+
+.option-grid.five{
+  grid-template-columns:repeat(5,1fr);
+}
+
+.option input{
+  display:none;
+}
+
+.option label{
+  display:block;
+  padding:13px 8px;
+  border-radius:12px;
   text-align:center;
-}
-
-.setting-icon{
-  font-size:20px;
-}
-
-.setting-title{
-  margin-top:5px;
+  background:#101f34;
+  border:1px solid rgba(255,255,255,.07);
+  color:#aebdcd;
   font-size:12px;
-  color:#b9c5d3;
+  cursor:pointer;
+  transition:.2s;
 }
 
+.option input:checked + label{
+  background:rgba(25,230,255,.12);
+  border-color:#19e6ff;
+  color:#19e6ff;
+  box-shadow:0 0 0 1px rgba(25,230,255,.15);
+}
+
+/* CUSTOM PROMPT */
+
+.prompt-box{
+  width:100%;
+  min-height:120px;
+  resize:vertical;
+  padding:14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.08);
+  background:#101f34;
+  color:#fff;
+  outline:none;
+  font-family:inherit;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.prompt-box:focus{
+  border-color:#19e6ff;
+}
+
+.prompt-box::placeholder{
+  color:#64758a;
+}
 
 /* CREATE */
 
 .create-btn{
   width:100%;
-  margin-top:18px;
+  margin-top:22px;
   padding:17px;
   border:0;
   border-radius:14px;
@@ -217,7 +275,6 @@ header{
   cursor:not-allowed;
 }
 
-
 /* STATUS */
 
 .status{
@@ -230,7 +287,6 @@ header{
   font-size:13px;
   line-height:1.6;
 }
-
 
 /* PROGRESS */
 
@@ -252,7 +308,6 @@ header{
   background:#19e6ff;
   transition:width .35s;
 }
-
 
 /* RESULT */
 
@@ -289,8 +344,22 @@ header{
   background:#19e6ff;
   color:#00151c;
   font-weight:900;
+  text-decoration:none;
+  font-weight:900;
 }
 
+/* NOTICE */
+
+.notice{
+  margin:25px 0;
+  padding:16px;
+  border-radius:15px;
+  background:rgba(255,193,7,.07);
+  border:1px solid rgba(255,193,7,.15);
+  color:#cbd4df;
+  font-size:12px;
+  line-height:1.7;
+}
 
 /* FEATURES */
 
@@ -324,21 +393,6 @@ header{
   line-height:1.6;
 }
 
-
-/* NOTICE */
-
-.notice{
-  margin:25px 0;
-  padding:16px;
-  border-radius:15px;
-  background:rgba(255,193,7,.07);
-  border:1px solid rgba(255,193,7,.15);
-  color:#cbd4df;
-  font-size:12px;
-  line-height:1.7;
-}
-
-
 /* FOOTER */
 
 footer{
@@ -350,17 +404,24 @@ footer{
   border-top:1px solid rgba(255,255,255,.07);
 }
 
-
 /* MOBILE */
 
 @media(max-width:650px){
 
   .container{
-    width:min(100% - 22px,900px);
+    width:min(100% - 18px,900px);
+  }
+
+  .header-inner{
+    height:62px;
+  }
+
+  .header-badge{
+    display:none;
   }
 
   .hero{
-    padding-top:40px;
+    padding-top:35px;
   }
 
   .hero p{
@@ -372,12 +433,10 @@ footer{
     border-radius:20px;
   }
 
-  .upload-area{
-    padding:32px 15px;
-  }
-
-  .settings{
-    grid-template-columns:1fr 1fr 1fr;
+  .option-grid,
+  .option-grid.four,
+  .option-grid.five{
+    grid-template-columns:repeat(2,1fr);
   }
 
   .features{
@@ -389,9 +448,7 @@ footer{
 </style>
 </head>
 
-
 <body>
-
 
 <header>
 
@@ -409,9 +466,7 @@ AI VIDEO EDITOR
 
 </header>
 
-
 <main class="container">
-
 
 <section class="hero">
 
@@ -420,21 +475,20 @@ AI VIDEO EDITOR
 </div>
 
 <h1>
-Edit Videos<br>
-<span>Automatically</span>
+Create Videos<br>
+<span>Your Way</span>
 </h1>
 
 <p>
-Upload your video and let AI Edit Studio
-automatically enhance, optimize and prepare
-it for Shorts, Reels and TikTok.
+Upload your own video, choose your preferred editing style
+and tell AI exactly how you want your video to look.
 </p>
 
 </section>
 
-
 <section class="editor-card">
 
+<!-- UPLOAD -->
 
 <div class="upload-area">
 
@@ -447,20 +501,13 @@ Upload Your Video
 </div>
 
 <div class="upload-description">
-Choose a video from your device.
-AI Edit Studio will automatically prepare
-your video for short-form platforms.
+Please upload a video from your own device.
+AI Edit Studio will automatically prepare and enhance it.
 </div>
 
-
-<label
-class="choose-btn"
-for="videoInput">
-
+<label class="choose-btn" for="videoInput">
 📁 Choose Video
-
 </label>
-
 
 <input
 id="videoInput"
@@ -468,122 +515,334 @@ type="file"
 accept="video/*"
 />
 
+<div id="fileName" class="file-name"></div>
 
-<div
-id="fileName"
-class="file-name">
+</div>
+
+<!-- EDITING SETTINGS -->
+
+<div class="settings-title-main">
+✨ Customize Your AI Edit
+</div>
+
+<div class="settings-subtitle">
+Choose your preferences or describe exactly how you want your video edited.
+</div>
+
+<!-- VIDEO STYLE -->
+
+<div class="option-group">
+
+<span class="option-label">
+🎬 Video Style
+</span>
+
+<div class="option-grid five">
+
+<div class="option">
+<input
+type="radio"
+name="style"
+id="styleCinematic"
+value="cinematic"
+checked
+>
+<label for="styleCinematic">🎥 Cinematic</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="style"
+id="styleFunny"
+value="funny"
+>
+<label for="styleFunny">😂 Funny</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="style"
+id="styleRomantic"
+value="romantic"
+>
+<label for="styleRomantic">❤️ Romantic</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="style"
+id="styleAction"
+value="action"
+>
+<label for="styleAction">⚡ Action</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="style"
+id="styleCustom"
+value="custom"
+>
+<label for="styleCustom">🎯 Custom</label>
 </div>
 
 </div>
 
-
-<div class="settings">
-
-<div class="setting">
-
-<div class="setting-icon">
-📱
 </div>
 
-<div class="setting-title">
-9:16 Short
+<!-- MUSIC -->
+
+<div class="option-group">
+
+<span class="option-label">
+🎵 Background Music
+</span>
+
+<div class="option-grid">
+
+<div class="option">
+<input
+type="radio"
+name="music"
+id="musicAuto"
+value="auto"
+checked
+>
+<label for="musicAuto">🎵 Auto</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="music"
+id="musicYes"
+value="yes"
+>
+<label for="musicYes">✅ Yes</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="music"
+id="musicNo"
+value="no"
+>
+<label for="musicNo">❌ No</label>
 </div>
 
 </div>
 
-
-<div class="setting">
-
-<div class="setting-icon">
-✨
 </div>
 
-<div class="setting-title">
-Auto Enhance
+<!-- SUBTITLE -->
+
+<div class="option-group">
+
+<span class="option-label">
+📝 Auto Subtitle
+</span>
+
+<div class="option-grid">
+
+<div class="option">
+<input
+type="radio"
+name="subtitle"
+id="subtitleYes"
+value="yes"
+checked
+>
+<label for="subtitleYes">✅ Yes</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="subtitle"
+id="subtitleNo"
+value="no"
+>
+<label for="subtitleNo">❌ No</label>
 </div>
 
 </div>
 
-
-<div class="setting">
-
-<div class="setting-icon">
-🔊
 </div>
 
-<div class="setting-title">
-Audio Optimize
+<!-- EFFECT -->
+
+<div class="option-group">
+
+<span class="option-label">
+✨ Effect Level
+</span>
+
+<div class="option-grid">
+
+<div class="option">
+<input
+type="radio"
+name="effect"
+id="effectLow"
+value="low"
+>
+<label for="effectLow">Low</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="effect"
+id="effectMedium"
+value="medium"
+checked
+>
+<label for="effectMedium">Medium</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="effect"
+id="effectHigh"
+value="high"
+>
+<label for="effectHigh">High</label>
 </div>
 
 </div>
 
 </div>
 
+<!-- ASPECT RATIO -->
+
+<div class="option-group">
+
+<span class="option-label">
+📱 Aspect Ratio
+</span>
+
+<div class="option-grid">
+
+<div class="option">
+<input
+type="radio"
+name="ratio"
+id="ratio916"
+value="9:16"
+checked
+>
+<label for="ratio916">📱 9:16</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="ratio"
+id="ratio169"
+value="16:9"
+>
+<label for="ratio169">🖥️ 16:9</label>
+</div>
+
+<div class="option">
+<input
+type="radio"
+name="ratio"
+id="ratioOriginal"
+value="original"
+>
+<label for="ratioOriginal">🎬 Original</label>
+</div>
+
+</div>
+
+</div>
+
+<!-- CUSTOM PROMPT -->
+
+<div class="option-group">
+
+<span class="option-label">
+✍️ Tell AI What You Want
+</span>
+
+<textarea
+id="customPrompt"
+class="prompt-box"
+placeholder="উদাহরণ: ভিডিওটা cinematic করে দাও, অপ্রয়োজনীয় অংশ কেটে দাও, সুন্দর বাংলা subtitle দাও, হালকা background music দাও এবং Shorts-এর জন্য 9:16 করে দাও।"
+></textarea>
+
+</div>
+
+<!-- CREATE -->
 
 <button
 id="createBtn"
 class="create-btn"
-disabled>
-
-⚡ Create AI Short
-
+disabled
+>
+✨ Create AI Edit
 </button>
 
+<!-- PROGRESS -->
 
 <div
 id="progressWrap"
-class="progress-wrap">
+class="progress-wrap"
+>
 
 <div class="progress-track">
 
 <div
 id="progressBar"
-class="progress-bar">
-</div>
+class="progress-bar"
+></div>
 
 </div>
 
 </div>
 
+<!-- STATUS -->
 
 <div
 id="status"
-class="status">
-</div>
+class="status"
+></div>
 
+<!-- RESULT -->
 
 <div
 id="result"
-class="result">
+class="result"
+>
 
 <div class="result-title">
-✅ Your AI Short is Ready
+✅ Your Edited Video is Ready
 </div>
 
 <div id="videoContainer"></div>
 
 </div>
 
-
 </section>
-
 
 <section class="notice">
 
-<strong>⚠️ Important:</strong><br>
+<strong>⚠️ Please Note:</strong><br>
 
-Please upload only videos that you created
-yourself or have permission/license to use.
-
-AI Edit Studio does not remove copyright
-ownership or grant permission to use
-someone else's content.
+Upload videos that you created yourself or have permission
+to edit and use. AI Edit Studio is an editing tool and does
+not provide permission to use copyrighted content.
 
 </section>
 
-
 <section class="features">
-
 
 <div class="feature">
 
@@ -592,17 +851,15 @@ someone else's content.
 </div>
 
 <h3>
-Automatic Editing
+AI Editing
 </h3>
 
 <p>
-Upload your video and let the system
-automatically prepare it for short-form
-content.
+Choose a style and describe your idea.
+The editing system will use your instructions.
 </p>
 
 </div>
-
 
 <div class="feature">
 
@@ -615,12 +872,11 @@ Auto Enhancement
 </h3>
 
 <p>
-Improve the overall look and audio of
-your video automatically.
+Prepare your video with improved format,
+visual processing and audio optimization.
 </p>
 
 </div>
-
 
 <div class="feature">
 
@@ -629,21 +885,19 @@ your video automatically.
 </div>
 
 <h3>
-Shorts Ready
+Social Ready
 </h3>
 
 <p>
-Create a mobile-friendly 9:16 video
-for Shorts, Reels and TikTok.
+Prepare videos for Shorts, Reels and TikTok
+with mobile-friendly formats.
 </p>
 
 </div>
 
 </section>
 
-
 </main>
-
 
 <footer>
 
@@ -651,345 +905,287 @@ for Shorts, Reels and TikTok.
 
 </footer>
 
-
 <script>
 
 const BACKEND_URL =
 "https://ai-edit-studio.onrender.com";
 
-
 const videoInput =
-document.getElementById(
-"videoInput"
-);
+document.getElementById("videoInput");
 
 const fileName =
-document.getElementById(
-"fileName"
-);
+document.getElementById("fileName");
 
 const createBtn =
-document.getElementById(
-"createBtn"
-);
+document.getElementById("createBtn");
 
 const statusBox =
-document.getElementById(
-"status"
-);
+document.getElementById("status");
 
 const progressWrap =
-document.getElementById(
-"progressWrap"
-);
+document.getElementById("progressWrap");
 
 const progressBar =
-document.getElementById(
-"progressBar"
-);
+document.getElementById("progressBar");
 
 const result =
-document.getElementById(
-"result"
-);
+document.getElementById("result");
 
 const videoContainer =
-document.getElementById(
-"videoContainer"
-);
+document.getElementById("videoContainer");
 
+const customPrompt =
+document.getElementById("customPrompt");
 
 let resultURL = null;
 
 
-// =====================================
-// FILE SELECT
-// =====================================
+/* FILE SELECT */
 
-videoInput.addEventListener(
-"change",
-function(){
+videoInput.addEventListener("change", function(){
 
-if(
-!videoInput.files ||
-videoInput.files.length === 0
-){
+  if(!videoInput.files || videoInput.files.length === 0){
 
-createBtn.disabled = true;
+    createBtn.disabled = true;
+    fileName.textContent = "";
 
-fileName.textContent = "";
+    return;
+  }
 
-return;
+  const file = videoInput.files[0];
 
-}
+  if(!file.type.startsWith("video/")){
 
+    showStatus(
+      "❌ Please select a valid video.",
+      true
+    );
 
-const file =
-videoInput.files[0];
+    videoInput.value = "";
+    createBtn.disabled = true;
 
+    return;
+  }
 
-if(
-!file.type.startsWith("video/")
-){
+  fileName.textContent =
+    "Selected: " + file.name;
 
-showStatus(
-"❌ Please select a valid video.",
-true
-);
+  createBtn.disabled = false;
 
-videoInput.value = "";
-
-createBtn.disabled = true;
-
-return;
-
-}
-
-
-fileName.textContent =
-"Selected: " + file.name;
-
-createBtn.disabled = false;
-
-result.style.display = "none";
-
-statusBox.style.display = "none";
+  result.style.display = "none";
+  statusBox.style.display = "none";
 
 });
 
 
-// =====================================
-// CREATE SHORT
-// =====================================
+/* CREATE AI EDIT */
 
-createBtn.addEventListener(
-"click",
-async function(){
+createBtn.addEventListener("click", async function(){
 
-if(
-!videoInput.files ||
-videoInput.files.length === 0
-){
+  if(!videoInput.files || videoInput.files.length === 0){
 
-showStatus(
-"Please choose a video first.",
-true
-);
+    showStatus(
+      "Please choose a video first.",
+      true
+    );
 
-return;
+    return;
+  }
 
-}
+  const file = videoInput.files[0];
 
+  const style =
+    document.querySelector(
+      'input[name="style"]:checked'
+    ).value;
 
-const file =
-videoInput.files[0];
+  const music =
+    document.querySelector(
+      'input[name="music"]:checked'
+    ).value;
 
+  const subtitle =
+    document.querySelector(
+      'input[name="subtitle"]:checked'
+    ).value;
 
-const formData =
-new FormData();
+  const effect =
+    document.querySelector(
+      'input[name="effect"]:checked'
+    ).value;
 
-formData.append(
-"video",
-file
-);
+  const ratio =
+    document.querySelector(
+      'input[name="ratio"]:checked'
+    ).value;
 
+  const prompt =
+    customPrompt.value.trim();
 
-createBtn.disabled = true;
+  const formData =
+    new FormData();
 
-createBtn.textContent =
-"⏳ Processing...";
+  formData.append("video", file);
 
+  formData.append("style", style);
 
-progressWrap.style.display =
-"block";
+  formData.append("music", music);
 
-progressBar.style.width =
-"10%";
+  formData.append("subtitle", subtitle);
 
+  formData.append("effect", effect);
 
-showStatus(
-"📤 Uploading your video..."
-);
+  formData.append("ratio", ratio);
 
+  formData.append("prompt", prompt);
 
-try{
+  createBtn.disabled = true;
 
+  createBtn.textContent =
+    "⏳ Processing...";
 
-const response =
-await fetch(
-BACKEND_URL +
-"/api/create-short",
-{
-method:"POST",
-body:formData
-}
-);
+  progressWrap.style.display =
+    "block";
 
+  progressBar.style.width =
+    "10%";
 
-progressBar.style.width =
-"60%";
+  showStatus(
+    "📤 Uploading your video..."
+  );
 
+  try{
 
-if(!response.ok){
+    const response =
+      await fetch(
+        BACKEND_URL +
+        "/api/create-short",
+        {
+          method:"POST",
+          body:formData
+        }
+      );
 
-let message =
-"Video processing failed.";
+    progressBar.style.width =
+      "60%";
 
-try{
+    if(!response.ok){
 
-const data =
-await response.json();
+      let message =
+        "Video processing failed.";
 
-if(data.message){
+      try{
 
-message =
-data.message;
+        const data =
+          await response.json();
 
-}
+        if(data.message){
 
-}catch(e){}
+          message =
+            data.message;
+        }
 
+      }catch(e){}
 
-throw new Error(message);
+      throw new Error(message);
+    }
 
-}
+    showStatus(
+      "⚙️ AI Edit Studio is processing your editing preferences..."
+    );
 
+    const blob =
+      await response.blob();
 
-showStatus(
-"⚙️ AI is processing your video..."
-);
+    progressBar.style.width =
+      "100%";
 
+    if(resultURL){
 
-const blob =
-await response.blob();
+      URL.revokeObjectURL(resultURL);
+    }
 
+    resultURL =
+      URL.createObjectURL(blob);
 
-progressBar.style.width =
-"100%";
+    const video =
+      document.createElement("video");
 
+    video.src =
+      resultURL;
 
-if(resultURL){
+    video.controls = true;
 
-URL.revokeObjectURL(
-resultURL
-);
+    video.playsInline = true;
 
-}
+    video.preload = "metadata";
 
+    const download =
+      document.createElement("a");
 
-resultURL =
-URL.createObjectURL(
-blob
-);
+    download.href =
+      resultURL;
 
+    download.download =
+      "AI-Edit-Studio-Video.mp4";
 
-// VIDEO PREVIEW
+    download.className =
+      "download-btn";
 
-const video =
-document.createElement(
-"video"
-);
+    download.textContent =
+      "⬇️ Download Edited Video";
 
-video.src =
-resultURL;
+    videoContainer.innerHTML = "";
 
-video.controls = true;
+    videoContainer.appendChild(video);
 
-video.playsInline = true;
+    videoContainer.appendChild(download);
 
-video.preload = "metadata";
+    result.style.display =
+      "block";
 
+    showStatus(
+      "✅ Your edited video is ready."
+    );
 
-// DOWNLOAD
+    createBtn.textContent =
+      "✨ Create Another Edit";
 
-const download =
-document.createElement(
-"a"
-);
+  }catch(error){
 
-download.href =
-resultURL;
+    console.error(error);
 
-download.download =
-"AI-Edit-Studio-Short.mp4";
+    showStatus(
+      "❌ " + error.message,
+      true
+    );
 
-download.className =
-"download-btn";
+    createBtn.textContent =
+      "✨ Create AI Edit";
 
-download.textContent =
-"⬇️ Download Short";
+  }finally{
 
-
-videoContainer.innerHTML = "";
-
-videoContainer.appendChild(
-video
-);
-
-videoContainer.appendChild(
-download
-);
-
-
-result.style.display =
-"block";
-
-
-showStatus(
-"✅ Short Ready! Preview your video below or download it."
-);
-
-
-createBtn.textContent =
-"✅ Short Ready";
-
-
-}catch(error){
-
-console.error(error);
-
-
-showStatus(
-"❌ " + error.message,
-true
-);
-
-
-createBtn.textContent =
-"⚡ Create AI Short";
-
-
-}finally{
-
-createBtn.disabled =
-false;
-
-}
+    createBtn.disabled =
+      false;
+  }
 
 });
 
 
-// =====================================
-// STATUS
-// =====================================
+/* STATUS */
 
-function showStatus(
-message,
-isError
-){
+function showStatus(message, isError){
 
-statusBox.style.display =
-"block";
+  statusBox.style.display =
+    "block";
 
-statusBox.textContent =
-message;
+  statusBox.textContent =
+    message;
 
-
-statusBox.style.color =
-isError
-? "#ff8a8a"
-: "#cbd4df";
-
+  statusBox.style.color =
+    isError
+    ? "#ff8a8a"
+    : "#cbd4df";
 }
 
 </script>
