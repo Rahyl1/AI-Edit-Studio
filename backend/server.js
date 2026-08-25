@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
 const { spawn } = require("child_process");
+const crypto = require("crypto");
 
 const app = express();
 
@@ -18,9 +19,11 @@ const outputDir = "/tmp/ai-edit-outputs";
 fs.mkdirSync(uploadDir, { recursive: true });
 fs.mkdirSync(outputDir, { recursive: true });
 
+const jobs = new Map();
+
 
 // ========================================
-// FILE UPLOAD
+// UPLOAD
 // ========================================
 
 const storage = multer.diskStorage({
@@ -82,41 +85,32 @@ const upload = multer({
 app.get("/", (req, res) => {
 
   res.json({
-
     success: true,
-
     name: "AI Edit Studio",
-
     message: "AI Edit Studio backend is running.",
-
-    version: "2.0.0"
-
+    version: "3.0.0"
   });
 
 });
 
 
 // ========================================
-// HEALTH CHECK
+// HEALTH
 // ========================================
 
 app.get("/api/health", (req, res) => {
 
   res.json({
-
     success: true,
-
     status: "online",
-
     service: "AI Edit Studio"
-
   });
 
 });
 
 
 // ========================================
-// CREATE SHORT
+// CREATE JOB
 // ========================================
 
 app.post(
@@ -127,52 +121,66 @@ app.post(
     if (!req.file) {
 
       return res.status(400).json({
-
         success: false,
-
         message: "Please upload a video."
-
       });
 
     }
 
+    const jobId = crypto.randomUUID();
 
     const inputFile = req.file.path;
 
     const outputFile = path.join(
       outputDir,
-      `ai-short-${Date.now()}.mp4`
+      `ai-short-${jobId}.mp4`
     );
 
-
-    // ====================================
-    // USER SETTINGS
-    // ====================================
-
     const style =
-  req.body.style || "cinematic";
+      req.body.style || "cinematic";
 
-const music =
-  req.body.music || "auto";
+    const music =
+      req.body.music || "auto";
 
-const subtitle =
-  req.body.subtitle || "yes";
+    const subtitle =
+      req.body.subtitle || "yes";
 
-const effect =
-  req.body.effect || "medium";
+    const effect =
+      req.body.effect || "medium";
 
-const ratio =
-  req.body.ratio || "9:16";
+    const ratio =
+      req.body.ratio ||
+      req.body.aspect ||
+      "9:16";
 
-const prompt =
-  req.body.prompt || "";
+    const prompt =
+      req.body.prompt || "";
+
+
+    jobs.set(jobId, {
+
+      status: "processing",
+
+      progress: 0,
+
+      message: "Starting video processing...",
+
+      outputFile: outputFile,
+
+      error: null
+
+    });
+
 
     console.log("================================");
-    console.log("AI EDIT REQUEST");
+    console.log("NEW AI EDIT JOB");
+    console.log("Job:", jobId);
     console.log("Style:", style);
+    console.log("Music:", music);
+    console.log("Subtitle:", subtitle);
     console.log("Effect:", effect);
     console.log("Ratio:", ratio);
-    console.log("Input:", inputFile);
+    console.log("Prompt:", prompt);
     console.log("================================");
 
 
@@ -188,7 +196,15 @@ const prompt =
         "scale=1280:720:force_original_aspect_ratio=increase," +
         "crop=1280:720";
 
-    } else {
+    }
+
+    else if (ratio === "original") {
+
+      scaleFilter = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
+
+    }
+
+    else {
 
       scaleFilter =
         "scale=720:1280:force_original_aspect_ratio=increase," +
@@ -198,10 +214,10 @@ const prompt =
 
 
     // ====================================
-    // EFFECT LEVEL
+    // EFFECT
     // ====================================
 
-    let effectFilter = "";
+    let effectFilter;
 
     if (effect === "low") {
 
@@ -231,7 +247,6 @@ const prompt =
 
     let styleFilter = "";
 
-
     if (style === "cinematic") {
 
       styleFilter =
@@ -260,23 +275,11 @@ const prompt =
 
     }
 
-    else {
-
-      styleFilter = "";
-
-    }
-
-
-    // ====================================
-    // FINAL FILTER
-    // ====================================
 
     const filters = [
 
       scaleFilter,
-
       effectFilter,
-
       styleFilter
 
     ].filter(Boolean);
@@ -287,7 +290,7 @@ const prompt =
 
 
     // ====================================
-    // FFMPEG COMMAND
+    // FFMPEG
     // ====================================
 
     const ffmpegArgs = [
@@ -326,9 +329,6 @@ const prompt =
     ];
 
 
-    console.log("Starting FFmpeg...");
-
-
     const ffmpeg =
       spawn("ffmpeg", ffmpegArgs);
 
@@ -337,16 +337,106 @@ const prompt =
 
 
     // ====================================
-    // FFMPEG LOG
+    // GET VIDEO DURATION
     // ====================================
 
-    ffmpeg.stderr.on("data", (data) => {
+    let duration = 0;
 
-      const text = data.toString();
+
+    const ffprobe =
+      spawn("ffprobe", [
+
+        "-v",
+        "error",
+
+        "-show_entries",
+        "format=duration",
+
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+
+        inputFile
+
+      ]);
+
+
+    let durationOutput = "";
+
+
+    ffprobe.stdout.on("data", data => {
+
+      durationOutput += data.toString();
+
+    });
+
+
+    ffprobe.on("close", () => {
+
+      duration =
+        parseFloat(durationOutput) || 0;
+
+    });
+
+
+    // ====================================
+    // FFMPEG PROGRESS
+    // ====================================
+
+    ffmpeg.stderr.on("data", data => {
+
+      const text =
+        data.toString();
 
       errorOutput += text;
 
-      console.log(text.trim());
+
+      const match =
+        text.match(/time=(\d+):(\d+):(\d+(?:\.\d+)?)/);
+
+      if (match && duration > 0) {
+
+        const hours =
+          Number(match[1]);
+
+        const minutes =
+          Number(match[2]);
+
+        const seconds =
+          Number(match[3]);
+
+        const currentTime =
+          hours * 3600 +
+          minutes * 60 +
+          seconds;
+
+
+        let percent =
+          Math.round(
+            (currentTime / duration) * 100
+          );
+
+
+        percent =
+          Math.max(
+            1,
+            Math.min(99, percent)
+          );
+
+
+        const job =
+          jobs.get(jobId);
+
+        if (job) {
+
+          job.progress =
+            percent;
+
+          job.message =
+            `Processing video... ${percent}%`;
+
+        }
+
+      }
 
     });
 
@@ -355,28 +445,31 @@ const prompt =
     // FFMPEG ERROR
     // ====================================
 
-    ffmpeg.on("error", (error) => {
+    ffmpeg.on("error", error => {
 
       console.error(
-        "FFmpeg start error:",
+        "FFmpeg error:",
         error
       );
 
+
       cleanupFile(inputFile);
 
-      if (!res.headersSent) {
 
-        res.status(500).json({
+      const job =
+        jobs.get(jobId);
 
-          success: false,
+      if (job) {
 
-          message:
-            "Video processing service could not start.",
+        job.status = "failed";
 
-          error:
-            error.message
+        job.progress = 0;
 
-        });
+        job.message =
+          "Video processing service could not start.";
+
+        job.error =
+          error.message;
 
       }
 
@@ -387,94 +480,242 @@ const prompt =
     // COMPLETE
     // ====================================
 
-    ffmpeg.on("close", (code) => {
-
-      console.log(
-        "FFmpeg finished with code:",
-        code
-      );
-
+    ffmpeg.on("close", code => {
 
       cleanupFile(inputFile);
 
 
+      const job =
+        jobs.get(jobId);
+
+
       if (code !== 0) {
 
-        console.error(errorOutput);
+        console.error(
+          errorOutput
+        );
 
-        return res.status(500).json({
 
-          success: false,
+        if (job) {
 
-          message:
-            "Video processing failed.",
+          job.status = "failed";
 
-          error:
-            errorOutput.slice(-2000)
+          job.progress = 0;
 
-        });
+          job.message =
+            "Video processing failed.";
+
+          job.error =
+            errorOutput.slice(-2000);
+
+        }
+
+        return;
 
       }
 
 
-      if (!fs.existsSync(outputFile)) {
+      if (
+        !fs.existsSync(outputFile)
+      ) {
 
-        return res.status(500).json({
+        if (job) {
 
-          success: false,
+          job.status = "failed";
 
-          message:
-            "Edited video could not be created."
+          job.progress = 0;
 
-        });
+          job.message =
+            "Edited video could not be created.";
+
+        }
+
+        return;
+
+      }
+
+
+      if (job) {
+
+        job.status = "completed";
+
+        job.progress = 100;
+
+        job.message =
+          "Your edited video is ready.";
 
       }
 
 
       console.log(
-        "AI Short created successfully."
+        "AI Short created:",
+        jobId
+      );
+
+    });
+
+
+    // ====================================
+    // SEND JOB ID
+    // ====================================
+
+    res.json({
+
+      success: true,
+
+      jobId: jobId,
+
+      message:
+        "Video processing started."
+
+    });
+
+  }
+);
+
+
+// ========================================
+// JOB STATUS
+// ========================================
+
+app.get(
+  "/api/create-short/status/:jobId",
+  (req, res) => {
+
+    const job =
+      jobs.get(
+        req.params.jobId
       );
 
 
-      // =================================
-      // SEND VIDEO
-      // =================================
+    if (!job) {
 
-      res.setHeader(
-        "Content-Type",
-        "video/mp4"
-      );
+      return res.status(404).json({
 
-      res.setHeader(
-        "Content-Disposition",
-        'inline; filename="ai-edit-short.mp4"'
-      );
+        success: false,
 
-
-      const readStream =
-        fs.createReadStream(outputFile);
-
-
-      readStream.pipe(res);
-
-
-      readStream.on("close", () => {
-
-        cleanupFile(outputFile);
+        message:
+          "Job not found."
 
       });
 
+    }
 
-      readStream.on("error", (error) => {
 
-        console.error(
-          "Output stream error:",
-          error
-        );
+    res.json({
 
-        cleanupFile(outputFile);
+      success: true,
+
+      status:
+        job.status,
+
+      progress:
+        job.progress,
+
+      message:
+        job.message,
+
+      error:
+        job.error
+
+    });
+
+  }
+);
+
+
+// ========================================
+// DOWNLOAD RESULT
+// ========================================
+
+app.get(
+  "/api/create-short/result/:jobId",
+  (req, res) => {
+
+    const job =
+      jobs.get(
+        req.params.jobId
+      );
+
+
+    if (!job) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "Job not found."
 
       });
+
+    }
+
+
+    if (
+      job.status !== "completed"
+    ) {
+
+      return res.status(400).json({
+
+        success: false,
+
+        message:
+          "Video is not ready yet."
+
+      });
+
+    }
+
+
+    if (
+      !fs.existsSync(
+        job.outputFile
+      )
+    ) {
+
+      return res.status(404).json({
+
+        success: false,
+
+        message:
+          "Output video no longer exists."
+
+      });
+
+    }
+
+
+    res.setHeader(
+      "Content-Type",
+      "video/mp4"
+    );
+
+
+    res.setHeader(
+      "Content-Disposition",
+      'inline; filename="AI-Edit-Studio-Video.mp4"'
+    );
+
+
+    const stream =
+      fs.createReadStream(
+        job.outputFile
+      );
+
+
+    stream.pipe(res);
+
+
+    stream.on("close", () => {
+
+      cleanupFile(
+        job.outputFile
+      );
+
+      jobs.delete(
+        req.params.jobId
+      );
 
     });
 
@@ -495,11 +736,15 @@ function cleanupFile(filePath) {
       fs.existsSync(filePath)
     ) {
 
-      fs.unlinkSync(filePath);
+      fs.unlinkSync(
+        filePath
+      );
 
     }
 
-  } catch (error) {
+  }
+
+  catch (error) {
 
     console.error(
       "Cleanup error:",
@@ -515,28 +760,41 @@ function cleanupFile(filePath) {
 // ERROR HANDLER
 // ========================================
 
-app.use((error, req, res, next) => {
+app.use(
+  (error, req, res, next) => {
 
-  console.error(
-    "Server error:",
-    error
-  );
+    console.error(
+      "Server error:",
+      error
+    );
 
-
-  if (
-    error instanceof multer.MulterError
-  ) {
 
     if (
-      error.code === "LIMIT_FILE_SIZE"
+      error instanceof multer.MulterError
     ) {
+
+      if (
+        error.code === "LIMIT_FILE_SIZE"
+      ) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Video is too large. Maximum size is 200 MB."
+
+        });
+
+      }
+
 
       return res.status(400).json({
 
         success: false,
 
         message:
-          "Video is too large. Maximum size is 200 MB."
+          error.message
 
       });
 
@@ -547,34 +805,27 @@ app.use((error, req, res, next) => {
 
       success: false,
 
-      message: error.message
+      message:
+        error.message ||
+        "Something went wrong."
 
     });
 
   }
-
-
-  return res.status(400).json({
-
-    success: false,
-
-    message:
-      error.message ||
-      "Something went wrong."
-
-  });
-
-});
+);
 
 
 // ========================================
 // START SERVER
 // ========================================
 
-app.listen(PORT, () => {
+app.listen(
+  PORT,
+  () => {
 
-  console.log(
-    `AI Edit Studio server running on port ${PORT}`
-  );
+    console.log(
+      `AI Edit Studio server running on port ${PORT}`
+    );
 
-});
+  }
+);
