@@ -1044,15 +1044,36 @@ createBtn.addEventListener("click", async function(){
   createBtn.textContent =
     "⏳ Processing...";
 
-  progressWrap.style.display =
-    "block";
+  progressWrap.style.display = "block";
+progressBar.style.width = "5%";
 
-  progressBar.style.width =
-    "10%";
+showStatus("📤 Uploading your video...");
 
-  showStatus(
-    "📤 Uploading your video..."
-  );
+let fakeProgress = 5;
+
+const progressTimer = setInterval(() => {
+
+  if (fakeProgress < 90) {
+
+    fakeProgress += Math.floor(
+      Math.random() * 5
+    ) + 1;
+
+    if (fakeProgress > 90) {
+      fakeProgress = 90;
+    }
+
+    progressBar.style.width =
+      fakeProgress + "%";
+
+    showStatus(
+      "⚙️ Video Processing " +
+      fakeProgress +
+      "% — Please wait..."
+    );
+  }
+
+}, 1000);
 
   try{
 
@@ -1065,7 +1086,12 @@ createBtn.addEventListener("click", async function(){
           body:formData
         }
       );
+clearInterval(progressTimer);
+progressBar.style.width = "100%";
 
+showStatus(
+  "✅ Video Processing 100% — Complete!"
+);
     progressBar.style.width =
       "60%";
 
