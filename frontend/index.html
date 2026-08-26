@@ -1106,16 +1106,15 @@ Social Ready
 © 2026 AI Edit Studio
 
 </footer>
-
-
 <script>
 
 /* =====================================================
    AI EDIT STUDIO FRONTEND
+   Backend: ai-edit-studio-1.onrender.com
    ===================================================== */
 
 const BACKEND_URL =
-"https://ai-edit-studio.onrender.com";
+"https://ai-edit-studio-1.onrender.com";
 
 
 const videoInput =
@@ -1155,8 +1154,9 @@ const customPrompt =
 document.getElementById("customPrompt");
 
 
-let resultURL = null;
 let processingTimer = null;
+let resultURL = null;
+let currentJobId = null;
 
 
 /* =====================================================
@@ -1198,20 +1198,40 @@ videoInput.addEventListener("change", function(){
   }
 
 
+  /* 200 MB check */
+
+  const maxSize =
+    200 * 1024 * 1024;
+
+
+  if(file.size > maxSize){
+
+    showStatus(
+      "❌ Video size cannot exceed 200 MB.",
+      true
+    );
+
+    videoInput.value = "";
+    createBtn.disabled = true;
+
+    return;
+  }
+
+
   fileName.textContent =
     "✅ Selected: " + file.name;
 
 
   createBtn.disabled = false;
 
-
   result.style.display =
     "none";
-
 
   statusBox.style.display =
     "none";
 
+  processingBox.style.display =
+    "none";
 
   videoContainer.innerHTML =
     "";
@@ -1225,7 +1245,7 @@ videoInput.addEventListener("change", function(){
 
 createBtn.addEventListener(
 "click",
-function(){
+async function(){
 
   if(
     !videoInput.files ||
@@ -1335,18 +1355,19 @@ function(){
   );
 
 
-  /* RESET */
+  /* ===================================================
+     RESET UI
+     =================================================== */
 
   createBtn.disabled =
     true;
 
   createBtn.textContent =
-    "⏳ Processing...";
+    "⏳ Uploading...";
 
 
   result.style.display =
     "none";
-
 
   videoContainer.innerHTML =
     "";
@@ -1357,440 +1378,670 @@ function(){
 
 
   setProgress(
-    2,
+    1,
     "Preparing",
-    "Getting your video ready..."
+    "🎬 Preparing your video..."
   );
 
 
-  /*
-    XMLHttpRequest ব্যবহার করা হয়েছে
-    যাতে Upload progress দেখা যায়।
-  */
+  try{
 
-  const xhr =
-    new XMLHttpRequest();
+    /* =================================================
+       UPLOAD VIDEO
+       ================================================= */
 
-
-  xhr.open(
-    "POST",
-    BACKEND_URL +
-    "/api/create-short",
-    true
-  );
+    const response =
+      await uploadVideo(formData);
 
 
-  /* ===================================================
-     UPLOAD PROGRESS
-     =================================================== */
+    if(!response.success){
 
-  xhr.upload.addEventListener(
-    "progress",
-    function(event){
-
-      if(!event.lengthComputable){
-        return;
-      }
-
-
-      const uploadPercent =
-        Math.round(
-          (event.loaded / event.total) * 35
-        );
-
-
-      setProgress(
-        uploadPercent,
-        "Uploading",
-        "📤 Uploading your video..."
+      throw new Error(
+        response.message ||
+        "Video upload failed."
       );
 
     }
-  );
 
 
-  /* ===================================================
-     SERVER PROCESSING START
-     =================================================== */
+    currentJobId =
+      response.jobId;
 
-  xhr.upload.addEventListener(
-    "load",
-    function(){
 
-      setProgress(
-        38,
-        "Processing",
-        "⚙️ AI is processing your video..."
-      );
+    if(!currentJobId){
 
-
-      startProcessingProgress();
-
-    }
-  );
-
-
-  /* ===================================================
-     SUCCESS
-     =================================================== */
-
-  xhr.addEventListener(
-    "load",
-    function(){
-
-      stopProcessingProgress();
-
-
-      if(
-        xhr.status < 200 ||
-        xhr.status >= 300
-      ){
-
-        let message =
-          "Video processing failed.";
-
-
-        try{
-
-          const data =
-            JSON.parse(
-              xhr.responseText
-            );
-
-
-          if(data.message){
-            message =
-              data.message;
-          }
-
-        }catch(error){}
-
-
-        throwError(
-          message
-        );
-
-        return;
-      }
-
-
-      setProgress(
-        95,
-        "Finalizing",
-        "🎬 Preparing your edited video..."
-      );
-
-
-      const blob =
-        xhr.response;
-
-
-      if(
-        !blob ||
-        blob.size === 0
-      ){
-
-        throwError(
-          "Edited video file is empty."
-        );
-
-        return;
-      }
-
-
-      if(resultURL){
-
-        URL.revokeObjectURL(
-          resultURL
-        );
-
-      }
-
-
-      resultURL =
-        URL.createObjectURL(
-          blob
-        );
-
-
-      /* ===============================
-         VIDEO ELEMENT
-         =============================== */
-
-      const video =
-        document.createElement(
-          "video"
-        );
-
-
-      video.src =
-        resultURL;
-
-      video.controls =
-        true;
-
-      video.playsInline =
-        true;
-
-      video.preload =
-        "metadata";
-
-
-      video.setAttribute(
-        "controlsList",
-        "nodownload"
-      );
-
-
-      /* ===============================
-         DOWNLOAD
-         =============================== */
-
-      const download =
-        document.createElement(
-          "a"
-        );
-
-
-      download.href =
-        resultURL;
-
-
-      download.download =
-        "AI-Edit-Studio-Short.mp4";
-
-
-      download.className =
-        "download-btn";
-
-
-      download.textContent =
-        "⬇️ Download Edited Video";
-
-
-      /* ===============================
-         RESULT CONTAINER
-         =============================== */
-
-      videoContainer.innerHTML =
-        "";
-
-
-      const ratio =
-        document.querySelector(
-          'input[name="ratio"]:checked'
-        ).value;
-
-
-      videoContainer.className =
-        "video-wrapper";
-
-
-      if(ratio === "9:16"){
-
-        videoContainer.classList.add(
-          "vertical"
-        );
-
-      }
-
-      else if(ratio === "16:9"){
-
-        videoContainer.classList.add(
-          "horizontal"
-        );
-
-      }
-
-
-      videoContainer.appendChild(
-        video
-      );
-
-
-      videoContainer.appendChild(
-        download
-      );
-
-
-      /* ===============================
-         SHOW RESULT
-         =============================== */
-
-      result.style.display =
-        "block";
-
-
-      setProgress(
-        100,
-        "Complete",
-        "✅ Video processing completed successfully!"
-      );
-
-
-      showStatus(
-        "✅ Your edited video is ready."
-      );
-
-
-      createBtn.textContent =
-        "✨ Create Another Edit";
-
-
-      /*
-        Result-এর কাছে scroll
-      */
-
-      setTimeout(
-        function(){
-
-          result.scrollIntoView({
-            behavior:"smooth",
-            block:"center"
-          });
-
-        },
-        300
+      throw new Error(
+        "Server did not return a job ID."
       );
 
     }
-  );
 
 
-  /* ===================================================
-     NETWORK ERROR
-     =================================================== */
-
-  xhr.addEventListener(
-    "error",
-    function(){
-
-      stopProcessingProgress();
+    console.log(
+      "Job ID:",
+      currentJobId
+    );
 
 
-      throwError(
-        "Failed to connect to AI Edit Studio server."
-      );
-
-    }
-  );
-
-
-  /* ===================================================
-     TIMEOUT
-     =================================================== */
-
-  xhr.addEventListener(
-    "timeout",
-    function(){
-
-      stopProcessingProgress();
+    setProgress(
+      40,
+      "Processing",
+      "⚙️ AI Edit Studio is processing your video..."
+    );
 
 
-      throwError(
-        "The server took too long to respond."
-      );
-
-    }
-  );
+    createBtn.textContent =
+      "⚙️ AI Processing...";
 
 
-  /*
-    Video processing বড় হলে
-    10 মিনিট পর্যন্ত অপেক্ষা করবে।
-  */
+    /* =================================================
+       START STATUS POLLING
+       ================================================= */
 
-  xhr.timeout =
-    10 * 60 * 1000;
-
-
-  /*
-    Binary video response
-  */
-
-  xhr.responseType =
-    "blob";
+    await waitForJob(
+      currentJobId
+    );
 
 
-  /* SEND */
+  }
 
-  xhr.send(
-    formData
-  );
+  catch(error){
+
+    console.error(
+      "Create Short Error:",
+      error
+    );
+
+
+    throwError(
+      error.message ||
+      "Something went wrong."
+    );
+
+  }
 
 });
 
 
 /* =====================================================
-   PROCESSING PROGRESS
+   UPLOAD VIDEO
    ===================================================== */
 
-function startProcessingProgress(){
+function uploadVideo(formData){
 
-  stopProcessingProgress();
+  return new Promise(
+    function(resolve,reject){
 
-
-  let percent =
-    40;
-
-
-  processingTimer =
-    setInterval(
-    function(){
-
-      /*
-        আসল FFmpeg progress backend
-        থেকে না আসা পর্যন্ত এটি
-        estimated progress দেখাবে।
-      */
-
-      if(percent < 92){
-
-        percent +=
-          Math.floor(
-            Math.random() * 3
-          ) + 1;
+      const xhr =
+        new XMLHttpRequest();
 
 
-        if(percent > 92){
+      xhr.open(
+        "POST",
+        BACKEND_URL +
+        "/api/create-short",
+        true
+      );
 
-          percent =
-            92;
+
+      xhr.upload.addEventListener(
+        "progress",
+        function(event){
+
+          if(!event.lengthComputable){
+            return;
+          }
+
+
+          const percent =
+            Math.round(
+              (event.loaded / event.total) * 35
+            );
+
+
+          setProgress(
+            percent,
+            "Uploading",
+            "📤 Uploading your video..."
+          );
+
+        }
+      );
+
+
+      xhr.onload =
+      function(){
+
+        if(
+          xhr.status >= 200 &&
+          xhr.status < 300
+        ){
+
+          try{
+
+            const data =
+              JSON.parse(
+                xhr.responseText
+              );
+
+
+            resolve(data);
+
+          }
+
+          catch(error){
+
+            reject(
+              new Error(
+                "Invalid server response."
+              )
+            );
+
+          }
 
         }
 
+        else{
 
-        setProgress(
-          percent,
-          "Processing",
-          "⚙️ AI Edit Studio is editing your video..."
+          let message =
+            "Video upload failed.";
+
+
+          try{
+
+            const data =
+              JSON.parse(
+                xhr.responseText
+              );
+
+
+            if(data.message){
+
+              message =
+                data.message;
+
+            }
+
+          }
+
+          catch(error){}
+
+
+          reject(
+            new Error(message)
+          );
+
+        }
+
+      };
+
+
+      xhr.onerror =
+      function(){
+
+        reject(
+          new Error(
+            "Failed to connect to AI Edit Studio server."
+          )
         );
 
-      }
+      };
 
-    },
-    1200
+
+      xhr.ontimeout =
+      function(){
+
+        reject(
+          new Error(
+            "Upload timed out. Please try a smaller video."
+          )
+        );
+
+      };
+
+
+      /*
+        Upload timeout
+        10 minutes
+      */
+
+      xhr.timeout =
+        10 * 60 * 1000;
+
+
+      xhr.send(
+        formData
+      );
+
+    }
   );
 
 }
 
 
 /* =====================================================
-   STOP TIMER
+   WAIT FOR JOB
    ===================================================== */
 
-function stopProcessingProgress(){
+function waitForJob(jobId){
 
-  if(processingTimer){
+  return new Promise(
+    function(resolve,reject){
 
-    clearInterval(
-      processingTimer
+      let attempts = 0;
+
+      const maxAttempts =
+        600;
+
+
+      const timer =
+        setInterval(
+        async function(){
+
+          attempts++;
+
+
+          try{
+
+            const response =
+              await fetch(
+                BACKEND_URL +
+                "/api/create-short/status/" +
+                encodeURIComponent(jobId)
+              );
+
+
+            if(!response.ok){
+
+              throw new Error(
+                "Unable to check processing status."
+              );
+
+            }
+
+
+            const data =
+              await response.json();
+
+
+            console.log(
+              "Job Status:",
+              data
+            );
+
+
+            /* =========================================
+               PROCESSING
+               ========================================= */
+
+            if(
+              data.status === "processing"
+            ){
+
+              const backendProgress =
+                Number(
+                  data.progress || 0
+                );
+
+
+              /*
+                Backend 0-100
+                Frontend 40-92 range
+              */
+
+              const displayProgress =
+                Math.max(
+                  40,
+                  Math.min(
+                    92,
+                    40 +
+                    Math.round(
+                      backendProgress * 0.52
+                    )
+                  )
+                );
+
+
+              setProgress(
+                displayProgress,
+                "Processing",
+                "⚙️ " +
+                (
+                  data.message ||
+                  "AI is editing your video..."
+                )
+              );
+
+            }
+
+
+            /* =========================================
+               COMPLETED
+               ========================================= */
+
+            else if(
+              data.status === "completed"
+            ){
+
+              clearInterval(
+                timer
+              );
+
+
+              setProgress(
+                95,
+                "Finalizing",
+                "🎬 Preparing your edited video..."
+              );
+
+
+              try{
+
+                await showResult(
+                  jobId
+                );
+
+
+                resolve();
+
+              }
+
+              catch(error){
+
+                reject(error);
+
+              }
+
+            }
+
+
+            /* =========================================
+               FAILED
+               ========================================= */
+
+            else if(
+              data.status === "failed"
+            ){
+
+              clearInterval(
+                timer
+              );
+
+
+              reject(
+                new Error(
+                  data.error ||
+                  data.message ||
+                  "Video processing failed."
+                )
+              );
+
+            }
+
+
+            /* =========================================
+               TIMEOUT
+               ========================================= */
+
+            if(
+              attempts >= maxAttempts
+            ){
+
+              clearInterval(
+                timer
+              );
+
+
+              reject(
+                new Error(
+                  "Video processing is taking too long. Please try again."
+                )
+              );
+
+            }
+
+          }
+
+          catch(error){
+
+            clearInterval(
+              timer
+            );
+
+
+            reject(
+              error
+            );
+
+          }
+
+        },
+        2000
+      );
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   SHOW RESULT
+   ===================================================== */
+
+async function showResult(jobId){
+
+  const resultResponse =
+    await fetch(
+      BACKEND_URL +
+      "/api/create-short/result/" +
+      encodeURIComponent(jobId)
     );
 
-    processingTimer =
-      null;
+
+  if(!resultResponse.ok){
+
+    let message =
+      "Edited video could not be loaded.";
+
+
+    try{
+
+      const data =
+        await resultResponse.json();
+
+
+      if(data.message){
+
+        message =
+          data.message;
+
+      }
+
+    }
+
+    catch(error){}
+
+
+    throw new Error(
+      message
+    );
 
   }
+
+
+  const blob =
+    await resultResponse.blob();
+
+
+  if(
+    !blob ||
+    blob.size === 0
+  ){
+
+    throw new Error(
+      "Edited video file is empty."
+    );
+
+  }
+
+
+  /* =================================================
+     CREATE VIDEO URL
+     ================================================= */
+
+  if(resultURL){
+
+    URL.revokeObjectURL(
+      resultURL
+    );
+
+  }
+
+
+  resultURL =
+    URL.createObjectURL(
+      blob
+    );
+
+
+  /* =================================================
+     VIDEO ELEMENT
+     ================================================= */
+
+  const video =
+    document.createElement(
+      "video"
+    );
+
+
+  video.src =
+    resultURL;
+
+  video.controls =
+    true;
+
+  video.playsInline =
+    true;
+
+  video.preload =
+    "metadata";
+
+
+  /* =================================================
+     DOWNLOAD BUTTON
+     ================================================= */
+
+  const download =
+    document.createElement(
+      "a"
+    );
+
+
+  download.href =
+    resultURL;
+
+
+  download.download =
+    "AI-Edit-Studio-Short.mp4";
+
+
+  download.className =
+    "download-btn";
+
+
+  download.textContent =
+    "⬇️ Download Edited Video";
+
+
+  /* =================================================
+     RESULT CONTAINER
+     ================================================= */
+
+  videoContainer.innerHTML =
+    "";
+
+
+  const ratio =
+    document.querySelector(
+      'input[name="ratio"]:checked'
+    ).value;
+
+
+  videoContainer.className =
+    "video-wrapper";
+
+
+  if(
+    ratio === "9:16"
+  ){
+
+    videoContainer.classList.add(
+      "vertical"
+    );
+
+  }
+
+  else if(
+    ratio === "16:9"
+  ){
+
+    videoContainer.classList.add(
+      "horizontal"
+    );
+
+  }
+
+
+  videoContainer.appendChild(
+    video
+  );
+
+
+  videoContainer.appendChild(
+    download
+  );
+
+
+  /* =================================================
+     SHOW RESULT
+     ================================================= */
+
+  result.style.display =
+    "block";
+
+
+  setProgress(
+    100,
+    "Complete",
+    "✅ Video processing completed successfully!"
+  );
+
+
+  showStatus(
+    "✅ Your edited video is ready."
+  );
+
+
+  createBtn.disabled =
+    false;
+
+
+  createBtn.textContent =
+    "✨ Create Another Edit";
+
+
+  setTimeout(
+    function(){
+
+      result.scrollIntoView({
+        behavior:"smooth",
+        block:"center"
+      });
+
+    },
+    300
+  );
 
 }
 
@@ -1838,9 +2089,6 @@ function setProgress(
    ===================================================== */
 
 function throwError(message){
-
-  stopProcessingProgress();
-
 
   processingBox.style.display =
     "block";
