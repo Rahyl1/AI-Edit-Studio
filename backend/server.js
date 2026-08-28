@@ -293,6 +293,26 @@ app.post(
 
     }
 
+    // ====================================
+// REMOVE OLD CAMERA WATERMARK
+// ====================================
+
+// Camera logo সাধারণত ভিডিওর একটি নির্দিষ্ট
+// কোণায় থাকে। এখানে সেই জায়গা সাময়িকভাবে
+// blur/mask করার ব্যবস্থা রাখা হয়েছে.
+//
+// IMPORTANT:
+// x, y, w, h পরে তোমার ভিডিও দেখে
+// সঠিকভাবে সেট করতে হবে।
+
+const cameraLogoFilter =
+  "delogo=x=0:y=0:w=0:h=0";
+
+
+console.log(
+  "Camera watermark removal:",
+  "Ready"
+);
 
     // ====================================
     // AI EDIT STUDIO WATERMARK
@@ -359,15 +379,17 @@ app.post(
 
     const filters = [
 
-      scaleFilter,
+  scaleFilter,
 
-      effectFilter,
+  effectFilter,
 
-      styleFilter,
+  styleFilter,
 
-      watermarkFilter
+  cameraLogoFilter,
 
-    ].filter(Boolean);
+  watermarkFilter
+
+].filter(Boolean);
 
 
     const finalVideoFilter =
