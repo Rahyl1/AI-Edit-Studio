@@ -88,7 +88,7 @@ app.get("/", (req, res) => {
     success: true,
     name: "AI Edit Studio",
     message: "AI Edit Studio backend is running.",
-    version: "3.0.0"
+    version: "4.0.0"
   });
 
 });
@@ -110,7 +110,7 @@ app.get("/api/health", (req, res) => {
 
 
 // ========================================
-// CREATE JOB
+// CREATE SHORT
 // ========================================
 
 app.post(
@@ -127,31 +127,43 @@ app.post(
 
     }
 
-    const jobId = crypto.randomUUID();
 
-    const inputFile = req.file.path;
+    const jobId =
+      crypto.randomUUID();
 
-    const outputFile = path.join(
-      outputDir,
-      `ai-short-${jobId}.mp4`
-    );
+
+    const inputFile =
+      req.file.path;
+
+
+    const outputFile =
+      path.join(
+        outputDir,
+        `ai-short-${jobId}.mp4`
+      );
+
 
     const style =
       req.body.style || "cinematic";
 
+
     const music =
       req.body.music || "auto";
+
 
     const subtitle =
       req.body.subtitle || "yes";
 
+
     const effect =
       req.body.effect || "medium";
+
 
     const ratio =
       req.body.ratio ||
       req.body.aspect ||
       "9:16";
+
 
     const prompt =
       req.body.prompt || "";
@@ -163,9 +175,11 @@ app.post(
 
       progress: 0,
 
-      message: "Starting video processing...",
+      message:
+        "Starting video processing...",
 
-      outputFile: outputFile,
+      outputFile:
+        outputFile,
 
       error: null
 
@@ -190,6 +204,7 @@ app.post(
 
     let scaleFilter;
 
+
     if (ratio === "16:9") {
 
       scaleFilter =
@@ -200,7 +215,8 @@ app.post(
 
     else if (ratio === "original") {
 
-      scaleFilter = "scale=trunc(iw/2)*2:trunc(ih/2)*2";
+      scaleFilter =
+        "scale=trunc(iw/2)*2:trunc(ih/2)*2";
 
     }
 
@@ -218,6 +234,7 @@ app.post(
     // ====================================
 
     let effectFilter;
+
 
     if (effect === "low") {
 
@@ -246,6 +263,7 @@ app.post(
     // ====================================
 
     let styleFilter = "";
+
 
     if (style === "cinematic") {
 
@@ -276,17 +294,90 @@ app.post(
     }
 
 
+    // ====================================
+    // AI EDIT STUDIO WATERMARK
+    // ====================================
+
+    let watermarkFilter = "";
+
+
+    const possibleFonts = [
+
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+
+      "/usr/share/fonts/truetype/liberation2/LiberationSans-Bold.ttf",
+
+      "/usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf"
+
+    ];
+
+
+    let fontFile = null;
+
+
+    for (
+      const font of possibleFonts
+    ) {
+
+      if (
+        fs.existsSync(font)
+      ) {
+
+        fontFile = font;
+
+        break;
+
+      }
+
+    }
+
+
+    if (fontFile) {
+
+      watermarkFilter =
+        "drawtext=" +
+        "text='AI Edit Studio':" +
+        "fontfile='" +
+        fontFile +
+        "':" +
+        "fontcolor=white:" +
+        "fontsize=28:" +
+        "x=20:" +
+        "y=20:" +
+        "box=1:" +
+        "boxcolor=black@0.45:" +
+        "boxborderw=8";
+
+    }
+
+
+    // ====================================
+    // FINAL FILTER
+    // ====================================
+
     const filters = [
 
       scaleFilter,
+
       effectFilter,
-      styleFilter
+
+      styleFilter,
+
+      watermarkFilter
 
     ].filter(Boolean);
 
 
     const finalVideoFilter =
       filters.join(",");
+
+
+    console.log(
+      "FFmpeg Filter:",
+      finalVideoFilter
+    );
 
 
     // ====================================
@@ -330,7 +421,10 @@ app.post(
 
 
     const ffmpeg =
-      spawn("ffmpeg", ffmpegArgs);
+      spawn(
+        "ffmpeg",
+        ffmpegArgs
+      );
 
 
     let errorOutput = "";
@@ -344,215 +438,283 @@ app.post(
 
 
     const ffprobe =
-      spawn("ffprobe", [
+      spawn(
+        "ffprobe",
+        [
 
-        "-v",
-        "error",
+          "-v",
+          "error",
 
-        "-show_entries",
-        "format=duration",
+          "-show_entries",
+          "format=duration",
 
-        "-of",
-        "default=noprint_wrappers=1:nokey=1",
+          "-of",
+          "default=noprint_wrappers=1:nokey=1",
 
-        inputFile
+          inputFile
 
-      ]);
+        ]
+      );
 
 
     let durationOutput = "";
 
 
-    ffprobe.stdout.on("data", data => {
+    ffprobe.stdout.on(
+      "data",
+      data => {
 
-      durationOutput += data.toString();
+        durationOutput +=
+          data.toString();
 
-    });
+      }
+    );
 
 
-    ffprobe.on("close", () => {
+    ffprobe.on(
+      "close",
+      () => {
 
-      duration =
-        parseFloat(durationOutput) || 0;
+        duration =
+          parseFloat(
+            durationOutput
+          ) || 0;
 
-    });
+      }
+    );
 
 
     // ====================================
     // FFMPEG PROGRESS
     // ====================================
 
-    ffmpeg.stderr.on("data", data => {
+    ffmpeg.stderr.on(
+      "data",
+      data => {
 
-      const text =
-        data.toString();
-
-      errorOutput += text;
-
-
-      const match =
-        text.match(/time=(\d+):(\d+):(\d+(?:\.\d+)?)/);
-
-      if (match && duration > 0) {
-
-        const hours =
-          Number(match[1]);
-
-        const minutes =
-          Number(match[2]);
-
-        const seconds =
-          Number(match[3]);
-
-        const currentTime =
-          hours * 3600 +
-          minutes * 60 +
-          seconds;
+        const text =
+          data.toString();
 
 
-        let percent =
-          Math.round(
-            (currentTime / duration) * 100
+        errorOutput +=
+          text;
+
+
+        const match =
+          text.match(
+            /time=(\d+):(\d+):(\d+(?:\.\d+)?)/
           );
 
 
-        percent =
-          Math.max(
-            1,
-            Math.min(99, percent)
-          );
+        if (
+          match &&
+          duration > 0
+        ) {
+
+          const hours =
+            Number(match[1]);
 
 
-        const job =
-          jobs.get(jobId);
+          const minutes =
+            Number(match[2]);
 
-        if (job) {
 
-          job.progress =
-            percent;
+          const seconds =
+            Number(match[3]);
 
-          job.message =
-            `Processing video... ${percent}%`;
+
+          const currentTime =
+            hours * 3600 +
+            minutes * 60 +
+            seconds;
+
+
+          let percent =
+            Math.round(
+              (currentTime / duration) *
+              100
+            );
+
+
+          percent =
+            Math.max(
+              1,
+              Math.min(
+                99,
+                percent
+              )
+            );
+
+
+          const job =
+            jobs.get(jobId);
+
+
+          if (job) {
+
+            job.progress =
+              percent;
+
+
+            job.message =
+              `Processing video... ${percent}%`;
+
+          }
 
         }
 
       }
-
-    });
+    );
 
 
     // ====================================
     // FFMPEG ERROR
     // ====================================
 
-    ffmpeg.on("error", error => {
+    ffmpeg.on(
+      "error",
+      error => {
 
-      console.error(
-        "FFmpeg error:",
-        error
-      );
+        console.error(
+          "FFmpeg error:",
+          error
+        );
 
 
-      cleanupFile(inputFile);
+        cleanupFile(
+          inputFile
+        );
 
 
-      const job =
-        jobs.get(jobId);
+        const job =
+          jobs.get(jobId);
 
-      if (job) {
 
-        job.status = "failed";
+        if (job) {
 
-        job.progress = 0;
+          job.status =
+            "failed";
 
-        job.message =
-          "Video processing service could not start.";
 
-        job.error =
-          error.message;
+          job.progress =
+            0;
+
+
+          job.message =
+            "Video processing service could not start.";
+
+
+          job.error =
+            error.message;
+
+        }
 
       }
-
-    });
+    );
 
 
     // ====================================
     // COMPLETE
     // ====================================
 
-    ffmpeg.on("close", code => {
+    ffmpeg.on(
+      "close",
+      code => {
 
-      cleanupFile(inputFile);
-
-
-      const job =
-        jobs.get(jobId);
-
-
-      if (code !== 0) {
-
-        console.error(
-          errorOutput
+        cleanupFile(
+          inputFile
         );
 
 
-        if (job) {
+        const job =
+          jobs.get(jobId);
 
-          job.status = "failed";
 
-          job.progress = 0;
+        if (code !== 0) {
 
-          job.message =
-            "Video processing failed.";
+          console.error(
+            "FFmpeg processing error:"
+          );
 
-          job.error =
-            errorOutput.slice(-2000);
+
+          console.error(
+            errorOutput
+          );
+
+
+          if (job) {
+
+            job.status =
+              "failed";
+
+
+            job.progress =
+              0;
+
+
+            job.message =
+              "Video processing failed.";
+
+
+            job.error =
+              errorOutput.slice(-2000);
+
+          }
+
+          return;
 
         }
 
-        return;
 
-      }
+        if (
+          !fs.existsSync(
+            outputFile
+          )
+        ) {
+
+          if (job) {
+
+            job.status =
+              "failed";
 
 
-      if (
-        !fs.existsSync(outputFile)
-      ) {
+            job.progress =
+              0;
 
-        if (job) {
 
-          job.status = "failed";
+            job.message =
+              "Edited video could not be created.";
 
-          job.progress = 0;
+          }
 
-          job.message =
-            "Edited video could not be created.";
+          return;
 
         }
 
-        return;
+
+        if (job) {
+
+          job.status =
+            "completed";
+
+
+          job.progress =
+            100;
+
+
+          job.message =
+            "Your edited video is ready.";
+
+        }
+
+
+        console.log(
+          "AI Short created:",
+          jobId
+        );
 
       }
-
-
-      if (job) {
-
-        job.status = "completed";
-
-        job.progress = 100;
-
-        job.message =
-          "Your edited video is ready.";
-
-      }
-
-
-      console.log(
-        "AI Short created:",
-        jobId
-      );
-
-    });
+    );
 
 
     // ====================================
@@ -704,20 +866,26 @@ app.get(
       );
 
 
-    stream.pipe(res);
+    stream.pipe(
+      res
+    );
 
 
-    stream.on("close", () => {
+    stream.on(
+      "close",
+      () => {
 
-      cleanupFile(
-        job.outputFile
-      );
+        cleanupFile(
+          job.outputFile
+        );
 
-      jobs.delete(
-        req.params.jobId
-      );
 
-    });
+        jobs.delete(
+          req.params.jobId
+        );
+
+      }
+    );
 
   }
 );
@@ -727,13 +895,17 @@ app.get(
 // CLEANUP
 // ========================================
 
-function cleanupFile(filePath) {
+function cleanupFile(
+  filePath
+) {
 
   try {
 
     if (
       filePath &&
-      fs.existsSync(filePath)
+      fs.existsSync(
+        filePath
+      )
     ) {
 
       fs.unlinkSync(
@@ -770,11 +942,13 @@ app.use(
 
 
     if (
-      error instanceof multer.MulterError
+      error instanceof
+      multer.MulterError
     ) {
 
       if (
-        error.code === "LIMIT_FILE_SIZE"
+        error.code ===
+        "LIMIT_FILE_SIZE"
       ) {
 
         return res.status(400).json({
